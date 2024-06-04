@@ -3,12 +3,18 @@ package router
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
+	"html/template"
 	"net/http"
-	"web-analyser/internal/api/resources/analyser"
-	"web-analyser/internal/api/resources/health"
-	"web-analyser/internal/router/handler"
-	middleware "web-analyser/internal/router/middleware"
+	"web-analyser/api/resources/analyser"
+	"web-analyser/api/resources/health"
+	"web-analyser/internal/router/middleware"
 )
+
+var tpl *template.Template
+
+func init() {
+	tpl = template.Must(template.ParseGlob("api/templates/*.gohtml"))
+}
 
 func New(l *zerolog.Logger) *chi.Mux {
 	r := chi.NewRouter()
@@ -16,9 +22,9 @@ func New(l *zerolog.Logger) *chi.Mux {
 
 	r.Get("/healthy", health.Read)
 
-	analyse := analyser.New(l)
-	r.Method(http.MethodGet, "/", handler.NewHandler(analyse.Index))
-	//r.Method(http.MethodPost, "/summary", requestlog.NewHandler(bookAPI.Create, l))
+	analyse := analyser.New(l, tpl)
+	r.Method(http.MethodGet, "/", middleware.NewRequestLog(analyse.Index, l))
+	r.Method(http.MethodPost, "/analyse", middleware.NewRequestLog(analyse.Analyse, l))
 
 	return r
 }
