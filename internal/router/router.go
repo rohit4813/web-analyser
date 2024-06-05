@@ -23,9 +23,9 @@ func New(l *zerolog.Logger) *chi.Mux {
 	// health api end point
 	r.Get("/healthy", health.Read)
 
-	a := analyser.New(l, tpl)
-	r.Method(http.MethodGet, "/", middleware.NewRequestLog(a.Index, l))
-	r.Method(http.MethodPost, "/summary", middleware.NewRequestLog(a.Summary, l))
+	h := analyser.NewHandler(l, tpl)
+	r.Method(http.MethodGet, "/", middleware.NewRequestLog(h.Index, l))
+	r.Method(http.MethodPost, "/summary", middleware.NewRequestLog(h.Summary, l))
 
 	return r
 }

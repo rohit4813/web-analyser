@@ -16,7 +16,7 @@ type Handler struct {
 	tpl    *template.Template
 }
 
-func New(logger *zerolog.Logger, tpl *template.Template) *Handler {
+func NewHandler(logger *zerolog.Logger, tpl *template.Template) *Handler {
 	return &Handler{
 		logger: logger,
 		tpl:    tpl,
@@ -29,12 +29,7 @@ func (a *Handler) Index(w http.ResponseWriter, r *http.Request) {
 
 	err := a.tpl.ExecuteTemplate(w, "index.gohtml", nil)
 	if err != nil {
-		a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("")
-		err := a.tpl.ExecuteTemplate(w, "error.gohtml", "Error serving the index page")
-		if err != nil {
-			a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("template error")
-			return
-		}
+		a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("template error")
 		return
 	}
 }
@@ -75,14 +70,9 @@ func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.tpl.ExecuteTemplate(w, "summary.gohtml", analyser.summary)
+	err = a.tpl.ExecuteTemplate(w, "summary.gohtml", analyser.GetSummary())
 	if err != nil {
-		a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("")
-		err := a.tpl.ExecuteTemplate(w, "error.gohtml", "Unable to analyse at the moment, please try again")
-		if err != nil {
-			a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("template error")
-			return
-		}
+		a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("template error")
 		return
 	}
 }
