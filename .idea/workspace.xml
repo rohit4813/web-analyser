@@ -5,13 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bd6c2a8a-bf65-4ec7-8fb6-ffbf2f9c3552" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/api/resources/analyser/summary.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/resources/analyser/model.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/resources/analyser/analyser.go" beforeDir="false" afterPath="$PROJECT_DIR$/api/resources/analyser/analyser.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/resources/analyser/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/api/resources/analyser/handler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/resources/analyser/model.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/router/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/router/router.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util/error/error.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/resources/analyser/summary.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/templates/error.gohtml" beforeDir="false" afterPath="$PROJECT_DIR$/api/templates/error.gohtml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/templates/index.gohtml" beforeDir="false" afterPath="$PROJECT_DIR$/api/templates/index.gohtml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/templates/summary.gohtml" beforeDir="false" afterPath="$PROJECT_DIR$/api/templates/summary.gohtml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

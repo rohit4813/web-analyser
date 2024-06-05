@@ -36,10 +36,6 @@ func (a *Handler) Index(w http.ResponseWriter, r *http.Request) {
 
 // Summary gives the summary of the url.
 func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
 	url := r.FormValue("url")
 	reqID := uCtx.RequestID(r.Context())
 
@@ -54,7 +50,7 @@ func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	analyser := NewAnalyser()
+	analyser := NewAnalyser(NewSummary(url))
 	err, statusCode := analyser.Analyse(url)
 	if err != nil {
 		a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("")
