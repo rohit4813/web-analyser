@@ -1,6 +1,7 @@
 package analyser
 
 import (
+	"errors"
 	"golang.org/x/net/html"
 	"net/http"
 	"regexp"
@@ -24,21 +25,26 @@ func (a *Analyser) GetSummary() *Summary {
 	return a.summary
 }
 
-func (a *Analyser) Analyse(u string) error {
+func (a *Analyser) Analyse(u string) (error, *int) {
 	resp, err := a.client.Get(u)
+	var statusCode *int
 	if err != nil {
-		return err
+		return err, statusCode
 	}
-
 	defer resp.Body.Close()
+
+	statusCode = &resp.StatusCode
+	if *statusCode != http.StatusOK {
+		return errors.New("response status code not ok"), statusCode
+	}
 
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
-		return err
+		return err, statusCode
 	}
 
 	a.summary.UpdateAttributes(doc)
-	return nil
+	return nil, statusCode
 }
 
 func (s *Summary) UpdateAttributes(n *html.Node) {

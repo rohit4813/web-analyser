@@ -5,8 +5,9 @@ import (
 	"github.com/rs/zerolog"
 	"html/template"
 	"net/http"
-	"regexp"
+	"strconv"
 	uCtx "web-analyser/util/ctx"
+	h "web-analyser/util/http"
 	"web-analyser/util/logger"
 )
 
@@ -48,7 +49,7 @@ func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 	reqID := uCtx.RequestID(r.Context())
 
 	// Validate the URL using the IsValidURL function
-	if !IsValidURL(url) {
+	if !h.IsValidURL(url) {
 		// If the URL is invalid, render the error template with an error message
 		a.logger.Error().Str(logger.KeyReqID, reqID).Err(errors.New("invalid URL")).Msg("")
 		err := a.tpl.ExecuteTemplate(w, "error.gohtml", "Invalid URL")
@@ -59,10 +60,14 @@ func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	analyser := NewAnalyser()
-	err := analyser.Analyse(url)
+	err, statusCode := analyser.Analyse(url)
 	if err != nil {
 		a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("")
-		err := a.tpl.ExecuteTemplate(w, "error.gohtml", "Unable to analyse at the moment, please try again")
+		msg := "Unable to analyse at the moment, please try again"
+		if statusCode != nil && *statusCode != http.StatusOK {
+			msg = "response status code not ok: " + strconv.Itoa(*statusCode)
+		}
+		err := a.tpl.ExecuteTemplate(w, "error.gohtml", msg)
 		if err != nil {
 			a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("template error")
 			return
@@ -80,14 +85,4 @@ func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-}
-
-// IsValidURL checks if the given string is a valid URL using regex.
-func IsValidURL(input string) bool {
-	const urlPattern = `http(s?)(:\/\/)((www\.)?)(([^.]+)\.)?([a-zA-z0-9\-_]+)(\.[a-zA-z0-9\-_]+)(\/[^\s]*)?`
-	match, err := regexp.MatchString(urlPattern, input)
-	if err != nil {
-		return false
-	}
-	return match
 }
