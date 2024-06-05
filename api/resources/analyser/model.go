@@ -1,16 +1,14 @@
 package analyser
 
-type HTMLVersion string
-
-// Summary represents a summary of HTML content.
+// Summary represents a summary of HTML page.
 type Summary struct {
 	version              string              // version represents the HTML version.
-	title                string              // title represents the HTML document title.
+	title                string              // title represents the HTML page title.
 	headerCount          map[string]int      // headerCount represents the count of each header type.
-	internalLinksMap     map[string]struct{} // internalLinksMap represents internal links found in the HTML.
-	externalLinksMap     map[string]struct{} // externalLinksMap represents external links found in the HTML.
-	inaccessibleLinksMap map[string]struct{} // inaccessibleLinksMap represents inaccessible links found in the HTML.
-	hasLoginForm         bool                // hasLoginForm represents if the HTML contains a login form.
+	internalLinksMap     map[string]struct{} // internalLinksMap represents internal links found in the HTML page.
+	externalLinksMap     map[string]struct{} // externalLinksMap represents external links found in the HTML page.
+	inaccessibleLinksMap map[string]struct{} // inaccessibleLinksMap represents inaccessible links found in the HTML page.
+	hasLoginForm         bool                // hasLoginForm represents if the HTML page contains a login form.
 }
 
 // NewSummary creates a new instance of Summary
@@ -28,7 +26,7 @@ func (s *Summary) SetVersion(version string) {
 	s.version = version
 }
 
-// SetTitle sets the HTML document title
+// SetTitle sets the HTML page title
 func (s *Summary) SetTitle(title string) {
 	s.title = title
 }

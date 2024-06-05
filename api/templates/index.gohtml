@@ -2,14 +2,16 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Form</title>
+        <title>Analyse an URL</title>
     </head>
     <body>
-    <h1>Enter URL to analyse it</h1>
-    <form action="/analyse" method="POST">
+    <form action="/summary" method="POST">
         <label for="url">URL</label>
-        <input type="text" name="url" id="url" placeholder="https://www.google.com">
-        <input type="submit" value="submit">
+        <input type="url" name="url" id="url" placeholder="https://www.google.com"
+               pattern="http(s?)(:\/\/)((www\.)?)(([^.]+)\.)?([a-zA-z0-9\-_]+)(\.[a-zA-z0-9\-_]+)(\/[^\s]*)?"
+               title="https://www.google.com"
+               required>
+        <input type="submit" value="Submit">
     </form>
     </body>
 </html>

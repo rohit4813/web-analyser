@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/joeshaw/envdecode"
 	"log"
+	"time"
 )
 
 type Conf struct {
@@ -10,8 +11,10 @@ type Conf struct {
 }
 
 type ConfServer struct {
-	Port  int  `env:"SERVER_PORT"`
-	Debug bool `env:"SERVER_DEBUG"`
+	Port         int           `env:"SERVER_PORT"`
+	Debug        bool          `env:"SERVER_DEBUG"`
+	TimeoutRead  time.Duration `env:"SERVER_TIMEOUT_READ"`
+	TimeoutWrite time.Duration `env:"SERVER_TIMEOUT_WRITE"`
 }
 
 func New() *Conf {

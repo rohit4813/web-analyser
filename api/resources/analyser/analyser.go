@@ -5,15 +5,18 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	h "web-analyser/util/http"
 )
 
 type Analyser struct {
 	summary *Summary
+	client  *http.Client
 }
 
 func NewAnalyser() *Analyser {
 	return &Analyser{
 		summary: NewSummary(),
+		client:  h.NewHTTPClient(),
 	}
 }
 
@@ -22,7 +25,7 @@ func (a *Analyser) GetSummary() *Summary {
 }
 
 func (a *Analyser) Analyse(u string) error {
-	resp, err := http.Get(u)
+	resp, err := a.client.Get(u)
 	if err != nil {
 		return err
 	}
