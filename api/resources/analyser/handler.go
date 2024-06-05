@@ -5,8 +5,8 @@ import (
 	"github.com/rs/zerolog"
 	"html/template"
 	"net/http"
-	"strconv"
 	uCtx "web-analyser/util/ctx"
+	e "web-analyser/util/error"
 	h "web-analyser/util/http"
 	"web-analyser/util/logger"
 )
@@ -42,8 +42,9 @@ func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 	// Validate the URL using the IsValidURL function
 	if !h.IsValidURL(url) {
 		// If the URL is invalid, render the error template with an error message
-		a.logger.Error().Str(logger.KeyReqID, reqID).Err(errors.New("invalid URL")).Msg("")
-		err := a.tpl.ExecuteTemplate(w, "error.gohtml", "Invalid URL")
+		a.logger.Error().Str(logger.KeyReqID, reqID).Str("url", url).
+			Err(errors.New("invalid URL")).Msg("")
+		err := a.tpl.ExecuteTemplate(w, "error.gohtml", e.Error{Msg: string(e.InvalidURLError)})
 		if err != nil {
 			a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("template error")
 			return
@@ -53,12 +54,14 @@ func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 	analyser := NewAnalyser(NewSummary(url))
 	err, statusCode := analyser.Analyse(url)
 	if err != nil {
-		a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("")
-		msg := "Unable to analyse at the moment, please try again"
-		if statusCode != nil && *statusCode != http.StatusOK {
-			msg = "response status code not ok: " + strconv.Itoa(*statusCode)
+		displayErr := e.Error{
+			Msg: string(e.UnreachableURLError),
 		}
-		err := a.tpl.ExecuteTemplate(w, "error.gohtml", msg)
+		if statusCode != nil {
+			displayErr.HTTPStatusCode = *statusCode
+		}
+		a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg(displayErr.Msg)
+		err := a.tpl.ExecuteTemplate(w, "error.gohtml", displayErr)
 		if err != nil {
 			a.logger.Error().Str(logger.KeyReqID, reqID).Err(err).Msg("template error")
 			return

@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>URL Analyser</title>
-</head>
-<body>
-<h1>Error</h1>
-<h2>{{.}}</h2>
-
-
-<div><a href="/">Go Back</a></div>
-</body>
+    <head>
+        <meta charset="utf-8">
+        <title>URL Analyser</title>
+    </head>
+    <style>
+        body {
+            text-align: center;
+            font-family: sans-serif;
+            padding: 100px 12px 10px 20px;
+        }
+    </style>
+    <body>
+        <h3 style="color: red">Error</h3>
+        <h4>Reason: {{.Msg}}</h4>
+        {{if gt .HTTPStatusCode 0}}
+            <h4>HTTP Status Code: {{.HTTPStatusCode}}</h4>
+        {{end}}
+    <div><a href="/">Go Back</a></div>
+    </body>
 </html>

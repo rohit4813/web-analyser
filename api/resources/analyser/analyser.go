@@ -2,6 +2,7 @@ package analyser
 
 import (
 	"errors"
+	"fmt"
 	"golang.org/x/net/html"
 	"net/http"
 	"regexp"
@@ -39,7 +40,8 @@ func (a *Analyser) Analyse(u string) (error, *int) {
 
 	statusCode = &resp.StatusCode
 	if *statusCode != http.StatusOK {
-		return errors.New("response status code not ok"), statusCode
+		return errors.New(fmt.Sprintf("http status code not 200, got: %v", *statusCode)),
+			statusCode
 	}
 
 	doc, err := html.Parse(resp.Body)
@@ -58,9 +60,7 @@ func (a *Analyser) ProcessHTML(n *html.Node) {
 	case html.ElementNode:
 		switch tagName := n.Data; tagName {
 		case "title":
-			if n.FirstChild != nil {
-				a.summary.SetTitle(text(n))
-			}
+			a.summary.SetTitle(text(n))
 		case "h1", "h2", "h3", "h4", "h5", "h6":
 			a.summary.IncrementHeadersCount(tagName)
 		case "a":
@@ -93,6 +93,20 @@ func (a *Analyser) ProcessHTML(n *html.Node) {
 	}
 }
 
+func text(n *html.Node) string {
+	if n.Type == html.TextNode {
+		return n.Data
+	}
+	if n.Type != html.ElementNode {
+		return ""
+	}
+	var ret string
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		ret += text(c)
+	}
+	return ret
+}
+
 func htmlVersion(n *html.Node) string {
 	version := "unknown"
 	if n.Data == "html" {
@@ -112,25 +126,6 @@ func htmlVersion(n *html.Node) string {
 		}
 	}
 	return version
-}
-
-func inputFields(n *html.Node) []*inputField {
-	if n.Type == html.ElementNode && n.Data == "input" {
-		field := inputField{}
-		for _, attr := range n.Attr {
-			if attr.Key == "type" {
-				field.t = attr.Val
-			}
-		}
-		return []*inputField{&field}
-	}
-
-	var fields []*inputField
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		fields = append(fields, inputFields(c)...)
-	}
-
-	return fields
 }
 
 func hasLoginForm(n *html.Node) bool {
@@ -164,16 +159,21 @@ func hasLoginForm(n *html.Node) bool {
 	return false
 }
 
-func text(n *html.Node) string {
-	if n.Type == html.TextNode {
-		return n.Data
+func inputFields(n *html.Node) []*inputField {
+	if n.Type == html.ElementNode && n.Data == "input" {
+		field := inputField{}
+		for _, attr := range n.Attr {
+			if attr.Key == "type" {
+				field.t = attr.Val
+			}
+		}
+		return []*inputField{&field}
 	}
-	if n.Type != html.ElementNode {
-		return ""
-	}
-	var ret string
+
+	var fields []*inputField
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		ret += text(c)
+		fields = append(fields, inputFields(c)...)
 	}
-	return ret
+
+	return fields
 }
