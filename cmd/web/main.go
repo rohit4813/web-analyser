@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"html/template"
 	"net/http"
 	"os"
@@ -25,6 +26,10 @@ func init() {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic("unable to load .env file")
+	}
 	// initialising the config
 	conf := config.New()
 	log := logger.New(conf.Server.Debug)
