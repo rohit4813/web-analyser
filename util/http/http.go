@@ -6,8 +6,12 @@ import (
 	"web-analyser/config"
 )
 
-// NewHTTPClient returns a new http client
-func NewHTTPClient(c *config.ClientConf) *http.Client {
+type Client interface {
+	Get(url string) (resp *http.Response, err error)
+}
+
+// NewClient returns a new http client
+func NewClient(c *config.ClientConf) *http.Client {
 	return &http.Client{
 		Timeout: c.Timeout,
 	}

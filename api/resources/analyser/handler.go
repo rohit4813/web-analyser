@@ -3,86 +3,85 @@ package analyser
 import (
 	"errors"
 	"github.com/rs/zerolog"
-	"html/template"
 	"net/http"
-	url2 "net/url"
+	netUrl "net/url"
 	uCtx "web-analyser/util/ctx"
 	e "web-analyser/util/error"
-	h "web-analyser/util/http"
+	iHttp "web-analyser/util/http"
+	iTemplate "web-analyser/util/template"
 )
 
-type Handler struct {
-	logger *zerolog.Logger
-	tpl    *template.Template
-	client *http.Client
+type Handler interface {
+	Index(w http.ResponseWriter, r *http.Request)
+	Summary(w http.ResponseWriter, r *http.Request)
 }
 
-func NewHandler(logger *zerolog.Logger, tpl *template.Template, client *http.Client) *Handler {
-	return &Handler{
-		logger: logger,
-		tpl:    tpl,
-		client: client,
+type HandlerImpl struct {
+	logger   *zerolog.Logger
+	tpl      iTemplate.Template
+	analyser Analyser
+}
+
+func NewHandler(logger *zerolog.Logger, tpl iTemplate.Template, analyser Analyser) *HandlerImpl {
+	return &HandlerImpl{
+		logger:   logger,
+		tpl:      tpl,
+		analyser: analyser,
 	}
 }
 
 // Index serves the index  page.
-func (a *Handler) Index(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerImpl) Index(w http.ResponseWriter, r *http.Request) {
 	// get the request id from the request context
 	reqID := uCtx.RequestID(r.Context())
 
 	// render the index page
-	err := a.tpl.ExecuteTemplate(w, "index.gohtml", nil)
+	err := h.tpl.ExecuteTemplate(w, "index.gohtml", nil)
 	if err != nil {
-		a.logger.Error().Str(uCtx.KeyRequestID, reqID).Err(err).Msg("template error")
+		h.logger.Error().Str(uCtx.KeyRequestID, reqID).Err(err).Msg("template error")
 		return
 	}
 }
 
 // Summary gives the summary of the url.
-func (a *Handler) Summary(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerImpl) Summary(w http.ResponseWriter, r *http.Request) {
 	// get the url from the request
 	url := r.FormValue("url")
 
 	reqID := uCtx.RequestID(r.Context())
 
 	// Validate the URL using the IsValidURL function
-	if !h.IsValidURL(url) {
+	if !iHttp.IsValidURL(url) {
 		// If the URL is invalid, log and render the error page with proper message
-		a.logger.Error().Str(uCtx.KeyRequestID, reqID).Str("url", url).
+		h.logger.Error().Str(uCtx.KeyRequestID, reqID).Str("url", url).
 			Err(errors.New("invalid URL")).Msg("")
-		err := a.tpl.ExecuteTemplate(w, "error.gohtml", e.Error{Msg: string(e.InvalidURLError)})
-		if err != nil {
-			a.logger.Error().Str(uCtx.KeyRequestID, reqID).Err(err).Msg("template error")
-			return
-		}
+		h.renderTemplate(w, r, "error.gohtml", e.Error{Msg: string(e.InvalidURLError)})
 		return
 	}
 
-	parsedUrl, _ := url2.Parse(url)
-	analyser := NewAnalyser(parsedUrl, NewSummary(), a.client)
-
-	// analyse the page
-	err, statusCode := analyser.Analyse()
+	parsedUrl, _ := netUrl.Parse(url)
+	err, statusCode := h.analyser.Analyse(parsedUrl)
 	if err != nil {
 		displayErr := e.Error{Msg: string(e.UnreachableURLError)}
-		// if there is statusCode returned, add it to the error object so that it can be displayed in the front end
+		// if there is statusCode returned, add it to the error object so that it can be conveyed to the user
 		if statusCode != nil {
 			displayErr.HTTPStatusCode = *statusCode
 		}
 		// log and render the error page with proper message
-		a.logger.Error().Str(uCtx.KeyRequestID, reqID).Err(err).Msg(displayErr.Msg)
-		err := a.tpl.ExecuteTemplate(w, "error.gohtml", displayErr)
-		if err != nil {
-			a.logger.Error().Str(uCtx.KeyRequestID, reqID).Err(err).Msg("template error")
-			return
-		}
+		h.logger.Error().Str(uCtx.KeyRequestID, reqID).Err(err).Msg(displayErr.Msg)
+		h.renderTemplate(w, r, "error.gohtml", displayErr)
 		return
 	}
 
-	// render the summary page after analysing the url
-	err = a.tpl.ExecuteTemplate(w, "summary.gohtml", analyser.GetSummary())
+	// render the summary after analysing the url
+	h.renderTemplate(w, r, "summary.gohtml", h.analyser.GetSummary())
+}
+
+func (h *HandlerImpl) renderTemplate(w http.ResponseWriter, r *http.Request, tpl string, data any) {
+	reqID := uCtx.RequestID(r.Context())
+	err := h.tpl.ExecuteTemplate(w, tpl, data)
 	if err != nil {
-		a.logger.Error().Str(uCtx.KeyRequestID, reqID).Err(err).Msg("template error")
+		h.logger.Error().Str(uCtx.KeyRequestID, reqID).Err(err).Msg("template error")
 		return
 	}
 }

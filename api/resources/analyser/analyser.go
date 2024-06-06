@@ -8,31 +8,35 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	iHttp "web-analyser/util/http"
 )
 
-type Analyser struct {
-	url     *url.URL
-	summary *Summary
-	client  *http.Client
+type Analyser interface {
+	GetSummary() *Summary
+	Analyse(url *url.URL) (error, *int)
 }
 
-func NewAnalyser(url *url.URL, summary *Summary, client *http.Client) *Analyser {
-	return &Analyser{
-		url:     url,
-		summary: summary,
-		client:  client,
+type AnalyserImpl struct {
+	summary *Summary
+	client  iHttp.Client
+}
+
+func NewAnalyser(client iHttp.Client) *AnalyserImpl {
+	return &AnalyserImpl{
+		client: client,
 	}
 }
 
 // GetSummary returns the summary on which the analyser operated
-func (a *Analyser) GetSummary() *Summary {
+func (a *AnalyserImpl) GetSummary() *Summary {
 	return a.summary
 }
 
-// Analyse analyses the url and updates the summary
-func (a *Analyser) Analyse() (error, *int) {
+// Analyse analyses the url and updates the summary, returns the error and http status code in case of error
+func (a *AnalyserImpl) Analyse(url *url.URL) (error, *int) {
+	a.summary = NewSummary(url.String())
 	// use the http client to get the url
-	resp, err := a.client.Get(a.url.String())
+	resp, err := a.client.Get(url.String())
 	var statusCode *int
 	if err != nil {
 		return err, statusCode
@@ -53,12 +57,12 @@ func (a *Analyser) Analyse() (error, *int) {
 	}
 
 	//process the html page tree
-	a.ProcessHTML(doc)
+	a.processHTML(url, doc)
 	return nil, statusCode
 }
 
-// ProcessHTML iterates over all the html nodes in a dfs manner and updates the required attributes
-func (a *Analyser) ProcessHTML(n *html.Node) {
+// processHTML iterates over all the html nodes in a dfs manner and updates the required attributes
+func (a *AnalyserImpl) processHTML(url *url.URL, n *html.Node) {
 	//get the type of the node
 	switch t := n.Type; t {
 	//if the type is html.DoctypeNode we can get the html version
@@ -85,7 +89,7 @@ func (a *Analyser) ProcessHTML(n *html.Node) {
 			if err != nil {
 				a.summary.AddInaccessibleLink(link)
 			} else {
-				if u.Host == "" || u.Hostname() == a.url.Hostname() {
+				if u.Host == "" || u.Hostname() == url.Hostname() {
 					a.summary.AddInternalLink(link)
 				} else {
 					a.summary.AddExternalLink(link)
@@ -101,7 +105,7 @@ func (a *Analyser) ProcessHTML(n *html.Node) {
 	}
 	//calls itself in a dfs manner
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		a.ProcessHTML(c)
+		a.processHTML(url, c)
 	}
 }
 

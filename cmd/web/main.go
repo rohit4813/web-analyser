@@ -29,8 +29,9 @@ func main() {
 	conf := config.New()
 	log := logger.New(conf.Server.Debug)
 
-	httpClient := h.NewHTTPClient(&conf.Client)
-	handler := analyser.NewHandler(log, tpl, httpClient)
+	httpClient := h.NewClient(&conf.Client)
+	a := analyser.NewAnalyser(httpClient)
+	handler := analyser.NewHandler(log, tpl, a)
 	mux := router.New(log, handler)
 
 	serv := &http.Server{

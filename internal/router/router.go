@@ -9,8 +9,8 @@ import (
 	"web-analyser/internal/router/middleware"
 )
 
-// New sets the routes using chi.Mux
-func New(l *zerolog.Logger, h *analyser.Handler) *chi.Mux {
+// New sets the routes using chi.Mux pkg
+func New(l *zerolog.Logger, h analyser.Handler) *chi.Mux {
 	r := chi.NewRouter()
 	// using RequestID middleware to set request id in ctx
 	r.Use(middleware.RequestID)
@@ -22,5 +22,8 @@ func New(l *zerolog.Logger, h *analyser.Handler) *chi.Mux {
 	r.Method(http.MethodGet, "/", middleware.NewRequestLog(h.Index, l))
 	r.Method(http.MethodPost, "/summary", middleware.NewRequestLog(h.Summary, l))
 
+	// redirecting 404, 405 http response to index page
+	r.NotFound(http.RedirectHandler("/", 301).ServeHTTP)
+	r.MethodNotAllowed(http.RedirectHandler("/", 301).ServeHTTP)
 	return r
 }

@@ -5,7 +5,7 @@ type Summary struct {
 	// Using struct{} in map since it doesn't occupy memory, and we are interested in unique elements,
 	// so it can be used as signals whether the element is present or not
 	// https://dave.cheney.net/2014/03/25/the-empty-struct
-	URL                  string              // URL represents the URL which was analysed
+	URL                  string              // URL represents the URL of the summarised HTML page
 	Version              string              // Version represents the HTML Version
 	Title                string              // Title represents the HTML page Title
 	HeadersCount         map[string]int      // HeadersCount represents the count of each header type
@@ -16,8 +16,9 @@ type Summary struct {
 }
 
 // NewSummary creates a new instance of Summary
-func NewSummary() *Summary {
+func NewSummary(url string) *Summary {
 	return &Summary{
+		URL:                  url,
 		HeadersCount:         make(map[string]int),
 		InternalLinksMap:     map[string]struct{}{},
 		ExternalLinksMap:     map[string]struct{}{},
@@ -25,11 +26,10 @@ func NewSummary() *Summary {
 	}
 }
 
-//
-//// SetURL sets the URL
-//func (s *Summary) SetURL(url string) {
-//	s.URL = url
-//}
+// SetURL sets the URL
+func (s *Summary) SetURL(url string) {
+	s.URL = url
+}
 
 // SetVersion sets the HTML Version
 func (s *Summary) SetVersion(version string) {
