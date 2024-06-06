@@ -2,16 +2,16 @@ package ctx
 
 import "context"
 
-const keyRequestID key = "requestID"
+// KeyRequestID is used to uniquely reference each request
+const KeyRequestID string = "requestID"
 
-type key string
-
+// RequestID gets the requestID from the context
 func RequestID(ctx context.Context) string {
-	requestID, _ := ctx.Value(keyRequestID).(string)
-
+	requestID, _ := ctx.Value(KeyRequestID).(string)
 	return requestID
 }
 
+// SetRequestID sets the requestID in the context
 func SetRequestID(ctx context.Context, requestID string) context.Context {
-	return context.WithValue(ctx, keyRequestID, requestID)
+	return context.WithValue(ctx, KeyRequestID, requestID)
 }

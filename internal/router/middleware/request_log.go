@@ -11,6 +11,7 @@ type RequestLog struct {
 	logger  *zerolog.Logger
 }
 
+// NewRequestLog returns RequestLog middleware
 func NewRequestLog(h http.HandlerFunc, l *zerolog.Logger) *RequestLog {
 	return &RequestLog{
 		handler: h,
@@ -18,6 +19,7 @@ func NewRequestLog(h http.HandlerFunc, l *zerolog.Logger) *RequestLog {
 	}
 }
 
+// ServeHTTP logs the important fields to help in debugging issues and then calls the handler ServeHTTP
 func (h *RequestLog) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug().
 		Str("request id", uCtx.RequestID(r.Context())).

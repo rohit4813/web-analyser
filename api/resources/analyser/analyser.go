@@ -5,59 +5,67 @@ import (
 	"fmt"
 	"golang.org/x/net/html"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
-	h "web-analyser/util/http"
 )
 
 type Analyser struct {
+	url     *url.URL
 	summary *Summary
 	client  *http.Client
 }
 
-type inputField struct {
-	t string
-}
-
-func NewAnalyser(summary *Summary) *Analyser {
+func NewAnalyser(url *url.URL, summary *Summary, client *http.Client) *Analyser {
 	return &Analyser{
+		url:     url,
 		summary: summary,
-		client:  h.NewHTTPClient(),
+		client:  client,
 	}
 }
 
+// GetSummary returns the summary on which the analyser operated
 func (a *Analyser) GetSummary() *Summary {
 	return a.summary
 }
 
-func (a *Analyser) Analyse(u string) (error, *int) {
-	resp, err := a.client.Get(u)
+// Analyse analyses the url and updates the summary
+func (a *Analyser) Analyse() (error, *int) {
+	// use the http client to get the url
+	resp, err := a.client.Get(a.url.String())
 	var statusCode *int
 	if err != nil {
 		return err, statusCode
 	}
 	defer resp.Body.Close()
 
+	//if http status code is not 200, return error
 	statusCode = &resp.StatusCode
 	if *statusCode != http.StatusOK {
 		return errors.New(fmt.Sprintf("http status code not 200, got: %v", *statusCode)),
 			statusCode
 	}
 
+	//parse the response body to build the html page tree
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
 		return err, statusCode
 	}
 
+	//process the html page tree
 	a.ProcessHTML(doc)
 	return nil, statusCode
 }
 
+// ProcessHTML iterates over all the html nodes in a dfs manner and updates the required attributes
 func (a *Analyser) ProcessHTML(n *html.Node) {
+	//get the type of the node
 	switch t := n.Type; t {
+	//if the type is html.DoctypeNode we can get the html version
 	case html.DoctypeNode:
 		a.summary.SetVersion(strings.ToUpper(htmlVersion(n)))
 	case html.ElementNode:
+		//check the tag of the html.ElementNode
 		switch tagName := n.Data; tagName {
 		case "title":
 			a.summary.SetTitle(text(n))
@@ -71,28 +79,33 @@ func (a *Analyser) ProcessHTML(n *html.Node) {
 					break
 				}
 			}
-			switch {
-			case strings.HasPrefix(link, "//") || strings.HasPrefix(link, "http"):
-				a.summary.AddExternalLink(link)
-			case strings.HasPrefix(link, "/"):
-				a.summary.AddInternalLink(link)
-			case !strings.HasPrefix(link, "#") && !strings.HasPrefix(link, "mailto") &&
-				!strings.HasPrefix(link, "tel") && !strings.HasPrefix(link, "javascript"):
+			//if !strings.HasPrefix(link, "mailto") && !strings.HasPrefix(link, "tel") &&
+			//	!strings.HasPrefix(link, "javascript") {
+			u, err := url.Parse(link)
+			if err != nil {
 				a.summary.AddInaccessibleLink(link)
+			} else {
+				if u.Host == "" || u.Hostname() == a.url.Hostname() {
+					a.summary.AddInternalLink(link)
+				} else {
+					a.summary.AddExternalLink(link)
+				}
 			}
+			//}
 		case "form":
 			if hasLoginForm(n) {
 				a.summary.SetHasLoginForm(true)
 			}
-
 		}
 
 	}
+	//calls itself in a dfs manner
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		a.ProcessHTML(c)
 	}
 }
 
+// text returns the joined text from a html node, it recursively calls itself to build the text
 func text(n *html.Node) string {
 	if n.Type == html.TextNode {
 		return n.Data
@@ -128,7 +141,9 @@ func htmlVersion(n *html.Node) string {
 	return version
 }
 
+// hasLoginForm returns whether a html page has login form, input is a html form node
 func hasLoginForm(n *html.Node) bool {
+	// actionValue is the action attribute of the form
 	actionValue := ""
 	for _, attr := range n.Attr {
 		if attr.Key == "action" {
@@ -136,21 +151,28 @@ func hasLoginForm(n *html.Node) bool {
 			break
 		}
 	}
+	// we check if actionValue doesn't contain register and signup, that means it can be a login form
+	// if the previous condition satisfies then we check if the actionValue contain either login or signin
+	// return true if that is the case, otherwise we check if the form has one username and
+	// one password input type field
 	if !strings.Contains(actionValue, "register") && !strings.Contains(actionValue, "signup") {
 		if strings.Contains(actionValue, "login") || strings.Contains(actionValue, "signin") {
 			return true
 		} else {
 			passwordInputFieldCount := 0
 			usernameInputFieldCount := 0
+			// iterate over all the input type fields in the form
 			for _, inputField := range inputFields(n) {
-				if inputField.t == "password" {
+				if inputField == "password" {
 					passwordInputFieldCount++
 				}
-				if inputField.t == "email" || inputField.t == "text" {
+				if inputField == "email" || inputField == "text" {
 					usernameInputFieldCount++
 				}
 			}
 
+			// if we have one email or text input type field and one password input type field
+			// return true
 			if usernameInputFieldCount == 1 && passwordInputFieldCount == 1 {
 				return true
 			}
@@ -159,18 +181,20 @@ func hasLoginForm(n *html.Node) bool {
 	return false
 }
 
-func inputFields(n *html.Node) []*inputField {
+// inputFields returns all the input tag types from a html node, it recursively calls itself to build the inputFields
+func inputFields(n *html.Node) []string {
 	if n.Type == html.ElementNode && n.Data == "input" {
-		field := inputField{}
+		var field string
 		for _, attr := range n.Attr {
 			if attr.Key == "type" {
-				field.t = attr.Val
+				field = attr.Val
+				break
 			}
 		}
-		return []*inputField{&field}
+		return []string{field}
 	}
 
-	var fields []*inputField
+	var fields []string
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		fields = append(fields, inputFields(c)...)
 	}

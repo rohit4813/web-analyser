@@ -6,12 +6,11 @@ import (
 	"github.com/rs/zerolog"
 )
 
-const KeyReqID = "request_id"
-
+// New returns zerolog.Logger initialized with logger options
 func New(isDebug bool) *zerolog.Logger {
 	logLevel := zerolog.InfoLevel
 	if isDebug {
-		logLevel = zerolog.TraceLevel
+		logLevel = zerolog.DebugLevel
 	}
 
 	zerolog.SetGlobalLevel(logLevel)
