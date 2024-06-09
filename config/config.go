@@ -24,7 +24,7 @@ type ClientConf struct {
 	Timeout time.Duration `env:"CLIENT_TIMEOUT"`
 }
 
-// New maps the environment variables in Conf using envdecode pkg
+// New maps the environment variables to Conf using envdecode pkg
 func New() *Conf {
 	var c Conf
 	if err := envdecode.StrictDecode(&c); err != nil {

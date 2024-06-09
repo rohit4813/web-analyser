@@ -6,8 +6,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// New returns zerolog.Logger initialized with logger options
-func New(isDebug bool) *zerolog.Logger {
+// NewLogger returns zerolog.Logger initialized with logger options
+func NewLogger(isDebug bool) *zerolog.Logger {
 	logLevel := zerolog.InfoLevel
 	if isDebug {
 		logLevel = zerolog.DebugLevel

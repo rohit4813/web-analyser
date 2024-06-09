@@ -5,4 +5,5 @@ COPY . /opt/web-analyser
 
 WORKDIR /opt/web-analyser
 
+RUN go get -v ./...
 RUN go build -o web-analyser cmd/web/main.go

@@ -13,10 +13,13 @@
     </style>
     <body>
         <h3 style="color: red">Error</h3>
-        <h4>Reason: {{.Msg}}</h4>
-        {{if gt .HTTPStatusCode 0}}
-            <h4>HTTP Status Code: {{.HTTPStatusCode}}</h4>
+        <h4>Reason: {{.Message}}</h4>
+        {{if ne .HttpStatusCode 0}}
+            <h4>HTTP Status Code: {{.HttpStatusCode}}</h4>
         {{end}}
-    <div><a href="/">Go Back</a></div>
+        <br/>
+        <br/>
+        <br/>
+        <div><a href="/">Go Back</a></div>
     </body>
 </html>

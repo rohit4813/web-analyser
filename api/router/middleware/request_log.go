@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/rs/zerolog"
 	"net/http"
-	uCtx "web-analyser/util/ctx"
+	iCtx "web-analyser/internal/utils/ctx"
 )
 
 type RequestLog struct {
@@ -22,7 +22,7 @@ func NewRequestLog(h http.HandlerFunc, l *zerolog.Logger) *RequestLog {
 // ServeHTTP logs the important fields to help in debugging issues and then calls the handler ServeHTTP
 func (h *RequestLog) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug().
-		Str("request id", uCtx.RequestID(r.Context())).
+		Str("request id", iCtx.RequestID(r.Context())).
 		Str("method", r.Method).
 		Str("request url", r.URL.String()).
 		Msg("request log")

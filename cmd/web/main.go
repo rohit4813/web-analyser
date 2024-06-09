@@ -11,30 +11,34 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	"web-analyser/api/resources/analyser"
+	"web-analyser/api/backend/analyser"
+	"web-analyser/api/router"
 	"web-analyser/config"
-	"web-analyser/internal/router"
-	h "web-analyser/util/http"
-	"web-analyser/util/logger"
+	iHttp "web-analyser/internal/utils/http"
+	"web-analyser/internal/utils/logger"
 )
 
+// setting up tpl global variable to load all the templates in memory to be rendered
 var tpl *template.Template
 
-// init loads all the templates in tpl global variable
+// init loads all the templates in tpl
 func init() {
 	tpl = template.Must(template.ParseGlob("api/templates/*.gohtml"))
 }
 
 func main() {
+	// load .env file
 	err := godotenv.Load()
 	if err != nil {
 		panic("unable to load .env file")
 	}
+
 	// initialising the config
 	conf := config.New()
-	log := logger.New(conf.Server.Debug)
 
-	httpClient := h.NewClient(&conf.Client)
+	// setup required objects
+	log := logger.NewLogger(conf.Server.Debug)
+	httpClient := iHttp.NewHttpClient(&conf.Client)
 	a := analyser.NewAnalyser(httpClient)
 	handler := analyser.NewHandler(log, tpl, a)
 	mux := router.New(log, handler)
@@ -60,7 +64,7 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 1*time.Hour)
 	defer shutdownRelease()
 
 	// serv.Shutdown(shutdownCtx) will gracefully shut down until the context is expired

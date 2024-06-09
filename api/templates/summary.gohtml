@@ -61,15 +61,15 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>Version</td>
+                    <td><b>Version</b></td>
                     <td>{{.Version}}</td>
                 </tr>
                 <tr>
-                    <td>Title</td>
+                    <td><b>Title</b></td>
                     <td>{{.Title}}</td>
                 </tr>
                 <tr>
-                    <td>Headers Count</td>
+                    <td><b>Headers Count</b></td>
                     <td>
                         {{if eq (len .HeadersCount) 0}}
                             {{0}}
@@ -81,7 +81,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>External Links Count</td>
+                    <td><b>External Links Count</b></td>
                     <td>
                         {{len .ExternalLinksMap}}
 {{/*                            {{range $link, $present := .ExternalLinksMap}}*/}}
@@ -90,7 +90,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Internal Links Count</td>
+                    <td><b>Internal Links Count</b></td>
                     <td>
                         {{len .InternalLinksMap}}
 {{/*                            {{range $link, $present := .InternalLinksMap}}*/}}
@@ -99,7 +99,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Inaccessible Links Count</td>
+                    <td><b>Inaccessible Links Count</b></td>
                     <td>
                         {{len .InaccessibleLinksMap}}
 {{/*                            {{range $link, $present := .InaccessibleLinksMap}}*/}}
@@ -108,11 +108,13 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Has Login Form</td>
+                    <td><b>Has Login Form</b></td>
                     <td>{{.HasLoginForm}}</td>
                 </tr>
             </tbody>
         </table>
+        <br/>
+        <br/>
         <br/>
         <div class="center"><a href="/">Go Back</a></div>
     </body>

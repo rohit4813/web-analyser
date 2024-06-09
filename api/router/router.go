@@ -4,9 +4,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 	"net/http"
-	"web-analyser/api/resources/analyser"
-	"web-analyser/api/resources/health"
-	"web-analyser/internal/router/middleware"
+	"web-analyser/api/backend/analyser"
+	"web-analyser/api/backend/health"
+	middleware "web-analyser/api/router/middleware"
 )
 
 // New sets the routes using chi.Mux pkg
@@ -22,7 +22,8 @@ func New(l *zerolog.Logger, h analyser.Handler) *chi.Mux {
 	r.Method(http.MethodGet, "/", middleware.NewRequestLog(h.Index, l))
 	r.Method(http.MethodPost, "/summary", middleware.NewRequestLog(h.Summary, l))
 
-	// redirecting 404, 405 http response to index page
+	// redirecting 404, 405 http response to index page for smooth UX,
+	// not recommended for production environment
 	r.NotFound(http.RedirectHandler("/", 301).ServeHTTP)
 	r.MethodNotAllowed(http.RedirectHandler("/", 301).ServeHTTP)
 	return r
