@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>URL Analyser</title>
+    </head>
+    <style>
+        body {
+            text-align: center;
+            font-family: sans-serif;
+            padding: 100px 12px 10px 20px;
+        }
+    </style>
+    <body>
+        <h3 style="color: red">Error</h3>
+        <h4>Reason: {{.Message}}</h4>
+        {{if ne .HttpStatusCode 0}}
+            <h4>HTTP Status Code: {{.HttpStatusCode}}</h4>
+        {{end}}
+        <br/>
+        <br/>
+        <br/>
+        <div><a href="/">Go Back</a></div>
+    </body>
+</html>

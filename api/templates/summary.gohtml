@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>URL Analyser</title>
+    </head>
+    <style>
+        .center {
+            text-align: center;
+            font-family: sans-serif;
+        }
+        .content-table {
+            margin-left: auto;
+            margin-right: auto;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            min-width: 400px;
+            border-radius: 5px 5px 0 0;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .content-table thead tr {
+            background-color: #009879;
+            color: #ffffff;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .content-table th,
+        .content-table td {
+            padding: 12px 15px;
+        }
+
+        .content-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .content-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .content-table tbody tr:last-of-type {
+            border-bottom: 2px solid #009879;
+        }
+
+        .content-table tbody tr.active-row {
+            font-weight: bold;
+            color: #009879;
+        }
+    </style>
+    <body>
+        <h2 class="center">Summary</h2>
+        <table class="content-table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>Version</b></td>
+                    <td>{{.Version}}</td>
+                </tr>
+                <tr>
+                    <td><b>Title</b></td>
+                    <td>{{.Title}}</td>
+                </tr>
+                <tr>
+                    <td><b>Headers Count</b></td>
+                    <td>
+                        {{if eq (len .HeadersCount) 0}}
+                            {{0}}
+                        {{else}}
+                            {{range $header, $count := .HeadersCount}}
+                                {{$header}}: {{$count}}<br/>
+                            {{end}}
+                        {{end}}
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>External Links Count</b></td>
+                    <td>
+                        {{len .ExternalLinksMap}}
+{{/*                            {{range $link, $present := .ExternalLinksMap}}*/}}
+{{/*                                {{$link}}<br/>*/}}
+{{/*                            {{end}}*/}}
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Internal Links Count</b></td>
+                    <td>
+                        {{len .InternalLinksMap}}
+{{/*                            {{range $link, $present := .InternalLinksMap}}*/}}
+{{/*                                {{$link}}<br/>*/}}
+{{/*                            {{end}}*/}}
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Inaccessible Links Count</b></td>
+                    <td>
+                        {{len .InaccessibleLinksMap}}
+{{/*                            {{range $link, $present := .InaccessibleLinksMap}}*/}}
+{{/*                                {{$link}}<br/>*/}}
+{{/*                            {{end}}*/}}
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Has Login Form</b></td>
+                    <td>{{.HasLoginForm}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <br/>
+        <br/>
+        <br/>
+        <div class="center"><a href="/">Go Back</a></div>
+    </body>
+
+</html>
